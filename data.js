@@ -1,152 +1,119 @@
-// SSC CGL 2027 — syllabus data
-// Plan anchor date: everything ("week N", suggested pace) is computed relative to this.
-const START_DATE = new Date(2026, 8, 7); // Mon, 7 Sep 2026 (month is 0-indexed)
-const CORE_WEEKS = 22; // core learning window before the plan leans into pure revision/mocks
+// SSC CGL 2027 — core config + English, Math and Reasoning syllabus
+// Every topic carries its own subtopic breakdown so the Today view can show
+// exactly what to cover. Topic order follows the source books/PDFs.
+
+const START_DATE = new Date(2026, 8, 2); // Wed, 2 Sep 2026 (month is 0-indexed)
+const CORE_WEEKS = 22; // core learning window (~5 months) before the plan leans into revision/mocks
+const SCIENCE_START_WEEK = 9; // science enters the planner after roughly two months
 
 const GRAMMAR_TOPICS = [
-  "Basics", "Pronoun", "Adjective", "Main Verb", "Modals", "Noun",
-  "Adverb + Inversion + Present Subjunctive Mood", "Article", "Subject-Verb Agreement",
-  "Tense", "Conjunction", "Preposition", "Advance Verb", "Question Tag", "Superfluous",
-  "Conditionals", "Voice", "Narration",
+  { t: "Basics", s: ["Parts of speech overview", "Subject, predicate & sentence structure", "Phrase vs clause", "Common error-spotting patterns"] },
+  { t: "Pronoun", s: ["Types: personal, reflexive, relative, indefinite", "Case — nominative vs objective", "Pronoun–antecedent agreement", "Frequent SSC pronoun errors"] },
+  { t: "Adjective", s: ["Kinds & order of adjectives", "Degrees of comparison", "Comparative/superlative errors", "Adjective vs adverb usage"] },
+  { t: "Main Verb", s: ["Transitive vs intransitive", "Finite vs non-finite verbs", "V1/V2/V3 forms", "Common verb-form errors"] },
+  { t: "Modals", s: ["Can/could, may/might, shall/should", "Must, ought to, need, dare", "Semi-modals & 'used to'", "Modal + perfect infinitive"] },
+  { t: "Noun", s: ["Kinds of nouns", "Number & gender rules", "Countable vs uncountable", "Possessive case & apposition"] },
+  { t: "Adverb + Inversion + Present Subjunctive Mood", s: ["Types & position of adverbs", "Inversion after negative adverbials", "Mandative subjunctive forms", "Common inversion traps"] },
+  { t: "Article", s: ["A / an / the rules", "Zero article cases", "Articles with proper nouns & superlatives", "Omission & wrong-insertion errors"] },
+  { t: "Subject-Verb Agreement", s: ["Basic concord rules", "Collective & compound subjects", "Either/or, neither/nor, each/every", "Distance, money & quantity nouns"] },
+  { t: "Tense", s: ["The twelve tense forms", "Sequence of tenses", "Time markers & tense signals", "Common tense-shift errors"] },
+  { t: "Conjunction", s: ["Coordinating vs subordinating", "Correlative conjunctions", "Conjunction pairs & parallelism", "Frequently misused conjunctions"] },
+  { t: "Preposition", s: ["Prepositions of time, place & direction", "Appropriate prepositions with verbs/adjectives", "Prepositional phrases", "Omission & repetition errors"] },
+  { t: "Advance Verb", s: ["Causative verbs", "Gerund vs infinitive", "Participles & dangling modifiers", "Verb + preposition patterns"] },
+  { t: "Question Tag", s: ["Basic tag formation", "Tags with modals & imperatives", "Special cases: let's, there is, I am", "Sentences with negative words"] },
+  { t: "Superfluous", s: ["Redundant words & pleonasm", "Double comparatives & double negatives", "Unnecessary prepositions", "PYQ superfluous patterns"] },
+  { t: "Conditionals", s: ["Zero & first conditional", "Second & third conditional", "Mixed conditionals", "Unless, in case, provided that"] },
+  { t: "Voice", s: ["Active–passive rules by tense", "Passive of imperatives & modals", "Passive with two objects", "Voice in questions"] },
+  { t: "Narration", s: ["Direct–indirect basic rules", "Change of tense, pronoun & time words", "Reporting questions, commands, exclamations", "Mixed narration"] },
 ];
 
 const VOCAB_TOPICS = [
-  "One Word Substitutions", "Idioms & Phrases", "Synonyms & Antonyms",
-  "Homonyms & Homophones", "Spelling", "Phrasal Verbs", "Fixed Prepositions",
-  "Foreign Words & Phrases (Latin/German/French/Italian)", "Prefixes, Suffixes & Root Words",
-  "Root words: Phobia, Mania, Phile, Ism", "Root words: Logy, Graphy, Mancy, Loquy",
-  "Root words: Phagy, Culture, Somnia",
+  { t: "One Word Substitutions", s: ["Top 200 most-repeated OWS", "SSC PYQ-based OWS set", "OWS from other competitive exams", "Self-test & revision"] },
+  { t: "Idioms & Phrases", s: ["Top 200 repeated idioms", "SSC PYQ idioms/phrases", "Idioms from other exams", "Contextual usage practice"] },
+  { t: "Synonyms & Antonyms", s: ["Common SSC synonym–antonym list", "Top 100 repeated synonyms", "Top 100 repeated antonyms", "PYQ practice set"] },
+  { t: "Homonyms & Homophones", s: ["Confusing word pairs", "Spelling-sound traps", "PYQ practice questions"] },
+  { t: "Spelling", s: ["Top 200 repeated spelling questions", "Common misspelling rules", "PYQ spelling practice"] },
+  { t: "Phrasal Verbs", s: ["High-frequency phrasal verbs", "Verb + particle meaning shifts", "The Hindu phrasal verbs", "PYQ practice"] },
+  { t: "Fixed Prepositions", s: ["Verb + preposition", "Adjective + preposition", "Noun + preposition", "PYQ practice"] },
+  { t: "Foreign Words & Phrases (Latin/German/French/Italian)", s: ["Latin phrases", "French phrases", "German & Italian terms", "Usage in sentences"] },
+  { t: "Prefixes, Suffixes & Root Words", s: ["Common prefixes", "Common suffixes", "Important root words", "Word-building practice"] },
+  { t: "Root words: Phobia, Mania, Phile, Ism", s: ["-phobia word list", "-mania word list", "-phile word list", "-ism word list"] },
+  { t: "Root words: Logy, Graphy, Mancy, Loquy", s: ["-logy word list", "-graphy word list", "-mancy word list", "-loquy word list"] },
+  { t: "Root words: Phagy, Culture, Somnia", s: ["-phagy word list", "-culture word list", "-somnia word list", "Mixed root revision"] },
 ];
 
 const MATH_TOPICS = [
-  "Number System", "HCF & LCM", "Simplification & Approximation", "Percentage",
-  "Ratio & Proportion", "Average", "Profit, Loss & Discount", "Simple & Compound Interest",
-  "Time & Work", "Time, Speed & Distance (+ Boats & Streams)", "Mensuration — 2D",
-  "Mensuration — 3D", "Algebra", "Trigonometry & Heights/Distances", "Geometry",
-  "Statistics & Data Interpretation", "Mixture & Alligation",
+  { t: "Number System", s: ["Divisibility rules", "Remainder theorems", "Unit digit & cyclicity", "Factors, factorials & trailing zeros"] },
+  { t: "HCF & LCM", s: ["HCF/LCM of numbers & fractions", "Word problems: bells, tiles, ropes", "Remainder-based problems"] },
+  { t: "Simplification & Approximation", s: ["BODMAS & surds", "Fractions & decimals", "Algebraic simplification", "Speed techniques"] },
+  { t: "Percentage", s: ["Fraction–percentage conversions", "Successive percentage change", "Population, income & exam problems", "Application-based questions"] },
+  { t: "Ratio & Proportion", s: ["Ratio basics & compounding", "Proportion, mean & continued proportion", "Partnership", "Age problems"] },
+  { t: "Average", s: ["Basic & weighted average", "Average of series", "Replacement & change in average", "Application problems"] },
+  { t: "Profit, Loss & Discount", s: ["CP, SP & MP relationships", "Successive discounts", "Dishonest dealer & false weights", "Marked price problems"] },
+  { t: "Simple & Compound Interest", s: ["SI formulas & applications", "CI: annual, half-yearly, quarterly", "SI vs CI difference", "Installments"] },
+  { t: "Time & Work", s: ["Efficiency & LCM method", "Pipes and cisterns", "Wages & work sharing", "Alternate-day work"] },
+  { t: "Time, Speed & Distance (+ Boats & Streams)", s: ["Basics & unit conversion", "Relative speed", "Trains", "Boats & streams"] },
+  { t: "Mensuration — 2D", s: ["Triangles & quadrilaterals", "Polygons", "Circle, sector & segment", "Combined & shaded figures"] },
+  { t: "Mensuration — 3D", s: ["Cube, cuboid & cylinder", "Cone, sphere & hemisphere", "Prism, pyramid & frustum", "Melting & recasting"] },
+  { t: "Algebra", s: ["Basic identities", "Componendo–dividendo & substitution", "Quadratic equations & roots", "Maxima–minima type problems"] },
+  { t: "Trigonometry & Heights/Distances", s: ["Ratios & identities", "Complementary angles & standard values", "Maximum–minimum of expressions", "Heights & distances"] },
+  { t: "Geometry", s: ["Lines, angles & triangles", "Congruence & similarity", "Circles, chords & tangents", "Centres: centroid, incentre, circumcentre"] },
+  { t: "Statistics & Data Interpretation", s: ["Mean, median & mode", "Bar, pie, line & table DI", "Mixed & caselet DI", "Speed-solving practice"] },
+  { t: "Mixture & Alligation", s: ["Alligation rule", "Replacement of mixture", "Multiple mixtures", "Mixed with profit & percentage"] },
 ];
 
-// Reasoning: sequential module order from the syllabus PDF. `weight` = the PDF's
-// "no. of days" effort estimate, used only to size the suggested weekly pace.
+// Reasoning: module order from the syllabus PDF. `w` = the PDF's day estimate,
+// used to size the suggested weekly pace. Subtopics are the PDF's own lecture/exercise units.
 const REASONING_TOPICS = [
-  { t: "Alphabet Test", w: 4 }, { t: "Coding–Decoding", w: 4 },
-  { t: "Number & Letter Series", w: 5 }, { t: "Alphanumeric Series", w: 1 },
-  { t: "Analogy & Similarity", w: 4 }, { t: "Classification", w: 3 },
-  { t: "Direction Test", w: 3 }, { t: "Blood Relation", w: 5 },
-  { t: "Order & Ranking", w: 4 }, { t: "Sitting Arrangement", w: 3 },
-  { t: "Puzzle", w: 2 }, { t: "Syllogism", w: 4 }, { t: "Coded Inequalities", w: 2 },
-  { t: "Calendar", w: 5 }, { t: "Clock", w: 3 }, { t: "Data Sufficiency", w: 2 },
-  { t: "Word Formation", w: 1 }, { t: "Logical Sequence of Words", w: 1 },
-  { t: "Mathematical Operations", w: 3 }, { t: "Arithmetical Reasoning", w: 1 },
-  { t: "Input Output", w: 4 }, { t: "Character Puzzle (Missing Number)", w: 2 },
-  { t: "Courses of Action", w: 1 }, { t: "Statement & Assumptions", w: 1 },
-  { t: "Statement & Arguments", w: 1 }, { t: "Cause and Effect", w: 2 },
-  { t: "Statement & Conclusions", w: 1 }, { t: "Statement & Inferences", w: 1 },
-  { t: "Venn Diagram", w: 2 }, { t: "Counting of Figures", w: 4 }, { t: "Dice", w: 2 },
-  { t: "Cube and Cuboid", w: 2 }, { t: "Mirror / Water Image", w: 1 },
-  { t: "Paper Cutting & Folding", w: 2 }, { t: "Embedded Figures", w: 1 },
-  { t: "Incomplete Figures", w: 1 }, { t: "Non-Verbal Series", w: 1 },
-  { t: "Non-Verbal Analogy", w: 1 }, { t: "Non-Verbal Classification", w: 1 },
-  { t: "Dot Situations", w: 1 }, { t: "Group of Identical Figures", w: 1 },
-  { t: "Image Analysis", w: 1 }, { t: "Matrix", w: 1 },
+  { t: "Alphabet Test", w: 4, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2(a)", "Exercise 2(b)", "Brainstorming", "QRP revision & notes"] },
+  { t: "Coding–Decoding", w: 4, s: ["Concept Lecture 1", "Exercise 1", "Exercise 2", "Concept Lecture 2", "Exercise 3", "Advance Level", "QRP revision & notes"] },
+  { t: "Number & Letter Series", w: 5, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Exercise 3", "Concept Lecture 3", "Exercise 4", "Exercise 5", "QRP revision & notes"] },
+  { t: "Alphanumeric Series", w: 1, s: ["Concept Lecture 1", "Exercise 1"] },
+  { t: "Analogy & Similarity", w: 4, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Concept Lecture 3", "Concept Lecture 4", "Exercise 5", "Exercise 6"] },
+  { t: "Classification", w: 3, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Concept Lecture 3"] },
+  { t: "Direction Test", w: 3, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Exercise 3"] },
+  { t: "Blood Relation", w: 5, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Concept Lecture 3", "Concept Lecture 4", "Exercise 3", "Exercise 4", "QRP revision & notes"] },
+  { t: "Order & Ranking", w: 4, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Concept Lecture 3", "Exercise 3", "QRP revision & notes"] },
+  { t: "Sitting Arrangement", w: 3, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Exercise 3", "Exercise 4"] },
+  { t: "Puzzle", w: 2, s: ["Concept Lecture 1", "Exercise 1", "Exercise 2"] },
+  { t: "Syllogism", w: 4, s: ["Concept Lecture 1", "Concept Lecture 2", "Exercise 1", "Exercise 2", "Concept Lecture 3", "Exercise 3", "Concept Lecture 4", "Concept Lecture 5"] },
+  { t: "Coded Inequalities", w: 2, s: ["Concept Lecture 1", "Exercise 1", "Exercise 2"] },
+  { t: "Calendar", w: 5, s: ["Concept Lecture 1", "Concept Lecture 2", "Concept Lecture 3", "Concept Lecture 4", "Concept Lecture 5", "Exercise 1", "Exercise 2", "QRP revision & notes"] },
+  { t: "Clock", w: 3, s: ["Concept Lecture 1", "Concept Lecture 2", "Concept Lecture 3", "Exercise 1", "QRP revision & notes"] },
+  { t: "Data Sufficiency", w: 2, s: ["Concept Lecture 1", "Exercise 1", "Exercise 2"] },
+  { t: "Word Formation", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Logical Sequence of Words", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Mathematical Operations", w: 3, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2", "Exercise 2", "Concept Lecture 3"] },
+  { t: "Arithmetical Reasoning", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Input Output", w: 4, s: ["Concept Lecture 1", "Concept Lecture 2", "Exercise 1", "Concept Lecture 3", "Exercise 2", "Exercise 3", "Exercise 4"] },
+  { t: "Character Puzzle (Missing Number)", w: 2, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Courses of Action", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Statement & Assumptions", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Statement & Arguments", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Cause and Effect", w: 2, s: ["Concept Lecture 1", "Concept Lecture 2", "Exercise 1"] },
+  { t: "Statement & Conclusions", w: 1, s: ["Concept Lecture 1", "Exercise 1"] },
+  { t: "Statement & Inferences", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Venn Diagram", w: 2, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2"] },
+  { t: "Counting of Figures", w: 4, s: ["Concept Lecture 1", "Concept Lecture 2", "Concept Lecture 3", "Exercise 1", "Concept Lecture 4", "Concept Lecture 5", "Exercise 2", "Exercise 3"] },
+  { t: "Dice", w: 2, s: ["Concept Lecture 1", "Exercise 1", "Concept Lecture 2"] },
+  { t: "Cube and Cuboid", w: 2, s: ["Concept Lecture 1", "Concept Lecture 2", "Exercise 1", "Exercise 2"] },
+  { t: "Mirror / Water Image", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Paper Cutting & Folding", w: 2, s: ["Concept Lecture 1", "Concept Lecture 2", "Concept Lecture 3"] },
+  { t: "Embedded Figures", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Incomplete Figures", w: 1, s: ["Concept Lecture 1", "Concept Lecture 2"] },
+  { t: "Non-Verbal Series", w: 1, s: ["Concept Lecture 1", "Exercise 1"] },
+  { t: "Non-Verbal Analogy", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Non-Verbal Classification", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Dot Situations", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Group of Identical Figures", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Image Analysis", w: 1, s: ["Concept Lecture 1"] },
+  { t: "Matrix", w: 1, s: ["Concept Lecture 1"] },
 ];
 
-// GS Phase 1 — Math/English/Polity-adjacent core, no science yet.
-const GS_PHASE1_SECTIONS = {
-  Geography: [
-    "Solar System", "Longitude and Latitude", "Earth's Interior and Plate Tectonics",
-    "Rocks, Continents and Oceans", "Geomorphology", "Landforms", "Atmosphere",
-    "Wind, Ocean Current and Cyclone", "India and its Location", "Himalayas",
-    "Peninsular Plateau", "Northern Plains and Islands", "Himalayan River System",
-    "Peninsular Rivers", "Dams, Lakes and Waterfalls", "Monsoon", "Forest and Grassland",
-    "Soil", "Agriculture", "Minerals", "World Map", "Human Geography", "Transport",
-  ],
-  "Ancient History": [
-    "Stone Age", "Indus Valley Civilization", "Vedic Age", "Sangam Age",
-    "Jainism and Buddhism", "Mahajanapadas", "Maurya Dynasty", "Post-Maurya Dynasties",
-    "Gupta Dynasty", "Post-Gupta Dynasties", "Tripartite Struggle and Cholas",
-  ],
-  "Medieval History": [
-    "Delhi Sultanate", "Vijayanagara and Bahmani Kingdom", "The Mughal Empire",
-    "Marathas", "Bhakti and Sufi Movements",
-  ],
-  "Modern History": [
-    "Advent of Europeans", "Socio-Religious Reforms", "Revolt of 1857",
-    "Indian National Congress", "Bengal Partition", "Gandhian Era",
-    "Civil Disobedience Movement & Simon Commission", "Quit India Movement",
-    "Governor-General and Viceroy",
-  ],
-  Polity: [
-    "Making of the Constitution", "Salient Features of the Constitution", "Preamble",
-    "Part 1 and Part 2 of the Constitution", "Fundamental Rights",
-    "DPSP and Fundamental Duties", "President and Vice President of India",
-    "Prime Minister and Council of Ministers", "Parliament", "State Legislature",
-    "Centre-State Relations", "Emergency & Constitutional Amendment",
-    "Supreme Court and High Court", "Local Government",
-    "Constitutional and Non-Constitutional Bodies", "New Criminal Laws 2023",
-    "Important Acts", "Sources of the Indian Constitution", "Noteworthy Points",
-  ],
-  Economics: [
-    "Basics of Economy", "Microeconomics", "National Income", "Budget and Taxation",
-    "Inflation and Unemployment", "Banking: Part 1", "Monetary Policy", "Banking: Part 2",
-    "Poverty and Balance of Payment", "Five Year Plans and Industrial Policy Resolution",
-    "Indices, Reports, International Institutions & Key Economic Concepts",
-  ],
-};
-
-// GS Phase 2 — unlocked manually once core subjects feel comfortable.
-const GS_PHASE2_SECTIONS = {
-  Physics: [
-    "Motion", "Force and Laws of Motion", "Gravitation and Work Done", "Sound",
-    "Reflection and Refraction", "Human Eye and Vision", "Electricity",
-    "Magnetic Effect of Electric Current",
-  ],
-  Chemistry: [
-    "Matter", "Atom and its Structure", "Periodic Table", "Chemical Reactions",
-    "Metals and Non-Metals", "Acid, Base and Salt", "Carbon and its Compounds",
-  ],
-  Biology: [
-    "Cell", "Plant Tissue and Animal Tissue", "Plant and Animal Kingdom",
-    "Nervous System", "Hormones and Plant Movement", "Reproduction",
-    "Digestion and Respiration", "Circulatory System and Excretory System", "Diseases",
-    "Nutrients", "Heredity and Evolution",
-  ],
-  Environment: [
-    "Basics of Environmental Sciences", "Ecosystem",
-    "Trophic Dynamics and Energy Transfer", "Biogeochemical Cycles",
-    "Environmental Conventions", "National Parks",
-  ],
-  "Static GK": [
-    "Music and Paintings", "Classical Dance", "Folk Dances of India",
-    "Festivals of India", "Census", "Important Days", "Books and Authors", "Sports",
-    "International Organisations", "National Organisations", "Awards and Honours",
-  ],
-};
-
-// Round-robin interleave across sections so GS doesn't grind through one section for weeks.
-function interleaveSections(sections) {
-  const names = Object.keys(sections);
-  const queues = names.map((n) => sections[n].map((title) => ({ title, section: n })));
-  const out = [];
-  let i = 0;
-  let remaining = queues.reduce((s, q) => s + q.length, 0);
-  while (remaining > 0) {
-    const q = queues[i % names.length];
-    if (q.length) {
-      out.push(q.shift());
-      remaining--;
-    }
-    i++;
-  }
-  return out;
-}
-
-const GS_PHASE1_TOPICS = interleaveSections(GS_PHASE1_SECTIONS);
-const GS_PHASE2_TOPICS = interleaveSections(GS_PHASE2_SECTIONS);
-
-// Which subjects are active on each weekday. 0 = Sunday .. 6 = Saturday.
+// Which subjects run on each weekday. 0 = Sunday .. 6 = Saturday.
+// Science joins the Tue/Thu/Sat slot once it is unlocked (see SCIENCE_DAYS).
 const WEEKDAY_SUBJECTS = {
-  0: { label: "Self Revision", subjects: [] }, // Sunday
+  0: { label: "Self Revision", subjects: [] },
   1: { label: "English + Math", subjects: ["grammar", "vocabulary", "math"] },
   2: { label: "Math + Reasoning + GS", subjects: ["math", "reasoning", "gs"] },
   3: { label: "English + Math", subjects: ["grammar", "vocabulary", "math"] },
@@ -154,6 +121,7 @@ const WEEKDAY_SUBJECTS = {
   5: { label: "English + Math", subjects: ["grammar", "vocabulary", "math"] },
   6: { label: "Math + Reasoning + GS", subjects: ["math", "reasoning", "gs"] },
 };
+const SCIENCE_DAYS = [2, 4, 6];
 
 const SUBJECT_META = {
   grammar: { label: "Grammar", color: "orange" },
@@ -161,4 +129,6 @@ const SUBJECT_META = {
   math: { label: "Math", color: "amber" },
   reasoning: { label: "Reasoning", color: "orange" },
   gs: { label: "GS", color: "yellow" },
+  science: { label: "Science", color: "amber" },
 };
+const SUBJECT_ORDER = ["grammar", "vocabulary", "math", "reasoning", "gs", "science"];

@@ -1,0 +1,163 @@
+// GS and Science syllabus — section order exactly as printed in the source book's index.
+// GS runs from day one. Science (Physics + Chemistry + Biology) stays hidden until unlocked.
+
+const GS_SECTIONS = {
+  Geography: [
+    { t: "Solar System", s: ["Sun & the planets", "Moon & eclipses", "Asteroids, comets & meteors"] },
+    { t: "Longitude and Latitude", s: ["Parallels & meridians", "Standard time & time zones", "International Date Line"] },
+    { t: "Earth's Interior and Plate Tectonics", s: ["Crust, mantle & core", "Plate boundaries & movement", "Earthquakes & volcanoes"] },
+    { t: "Rocks, Continents and Oceans", s: ["Igneous, sedimentary & metamorphic rocks", "Rock cycle", "Continents & ocean floor relief"] },
+    { t: "Geomorphology", s: ["Weathering & erosion", "Endogenic & exogenic forces", "Cycle of erosion"] },
+    { t: "Landforms", s: ["Fluvial & glacial landforms", "Aeolian & coastal landforms", "Karst topography"] },
+    { t: "Atmosphere", s: ["Layers of the atmosphere", "Composition & temperature", "Insolation & heat budget"] },
+    { t: "Wind, Ocean Current and Cyclone", s: ["Planetary & local winds", "Major ocean currents", "Cyclones & anticyclones"] },
+    { t: "India and its Location", s: ["Extent & boundaries", "States & neighbouring countries", "Physiographic divisions"] },
+    { t: "Himalayas", s: ["Ranges & divisions", "Important passes", "Peaks & glaciers"] },
+    { t: "Peninsular Plateau", s: ["Deccan Plateau & Central Highlands", "Western & Eastern Ghats", "Important hill ranges"] },
+    { t: "Northern Plains and Islands", s: ["Divisions of the plains", "Andaman & Nicobar Islands", "Lakshadweep"] },
+    { t: "Himalayan River System", s: ["Indus system", "Ganga system", "Brahmaputra system"] },
+    { t: "Peninsular Rivers", s: ["East-flowing rivers", "West-flowing rivers", "Tributaries & basins"] },
+    { t: "Dams, Lakes and Waterfall", s: ["Major dams & their rivers", "Important lakes", "Famous waterfalls"] },
+    { t: "Monsoon", s: ["Mechanism & onset", "Southwest & northeast monsoon", "Rainfall distribution"] },
+    { t: "Forest and Grassland", s: ["Forest types of India", "Grasslands of the world", "Biosphere reserves"] },
+    { t: "Soil", s: ["Soil types of India", "Soil erosion & conservation", "Crop suitability"] },
+    { t: "Agriculture", s: ["Cropping seasons & patterns", "Major crops & top producers", "Agricultural revolutions"] },
+    { t: "Minerals", s: ["Metallic & non-metallic minerals", "Distribution in India", "Energy resources"] },
+    { t: "World Map", s: ["Continents & countries", "Straits, canals & seas", "Important lines & boundaries"] },
+    { t: "Human Geography", s: ["Population & density", "Tribes & races", "Migration & settlement"] },
+    { t: "Transport", s: ["Railways & zones", "National highways", "Ports & airports"] },
+  ],
+  "Ancient History": [
+    { t: "Stone Age", s: ["Palaeolithic, Mesolithic & Neolithic", "Important sites", "Chalcolithic cultures"] },
+    { t: "Indus Valley Civilization", s: ["Sites & town planning", "Society, economy & trade", "Decline theories"] },
+    { t: "Vedic Age", s: ["Early & later Vedic period", "Vedic literature", "Society, polity & religion"] },
+    { t: "Sangam Age", s: ["Sangam literature", "Chera, Chola & Pandya kingdoms", "Society & economy"] },
+    { t: "Jainism and Buddhism", s: ["Mahavira & Jain doctrines", "Buddha & Buddhist councils", "Sects, texts & spread"] },
+    { t: "Mahajanapadas", s: ["The sixteen mahajanapadas", "Rise of Magadha", "Haryanka, Shishunaga & Nanda dynasties"] },
+    { t: "Maurya Dynasty", s: ["Chandragupta & Chanakya", "Ashoka & his edicts", "Administration, art & decline"] },
+    { t: "Post-Maurya Dynasties", s: ["Shunga, Kanva & Satavahana", "Indo-Greeks, Shakas & Kushanas", "Art schools & trade"] },
+    { t: "Gupta Dynasty", s: ["Rulers & conquests", "Administration & economy", "Art, science & literature"] },
+    { t: "Post-Gupta Dynasties", s: ["Harshavardhana", "Pallavas & Chalukyas", "Rajput kingdoms"] },
+    { t: "Tripartite Struggle and Cholas", s: ["Palas, Pratiharas & Rashtrakutas", "Chola administration & local self-government", "Temple architecture"] },
+  ],
+  "Medieval History": [
+    { t: "Delhi Sultanate", s: ["Slave & Khilji dynasties", "Tughlaq, Sayyid & Lodi dynasties", "Administration & architecture"] },
+    { t: "Vijayanagara and Bahmani Kingdom", s: ["Vijayanagara rulers & Krishnadevaraya", "Bahmani kingdom & successors", "Society, economy & architecture"] },
+    { t: "The Mughal Empire", s: ["Babur to Aurangzeb", "Mansabdari & land revenue system", "Art, architecture & decline"] },
+    { t: "Marathas", s: ["Shivaji & his administration", "Peshwas & Maratha expansion", "Anglo-Maratha wars"] },
+    { t: "Bhakti and Sufi Movements", s: ["Bhakti saints of north & south", "Sufi orders & saints", "Impact on society & language"] },
+  ],
+  "Modern History": [
+    { t: "Advent of Europeans", s: ["Portuguese, Dutch, French & British", "Battles of Plassey & Buxar", "Subsidiary Alliance & Doctrine of Lapse"] },
+    { t: "Socio-Religious Reforms", s: ["Brahmo Samaj & Arya Samaj", "Ramakrishna & other movements", "Social legislation & reformers"] },
+    { t: "Revolt of 1857", s: ["Causes & major centres", "Leaders & suppression", "Consequences & Act of 1858"] },
+    { t: "Indian National Congress", s: ["Formation & early sessions", "Moderates vs Extremists", "Surat split & important presidents"] },
+    { t: "Bengal Partition", s: ["Causes & the Swadeshi movement", "Boycott & its impact", "Annulment in 1911"] },
+    { t: "Gandhian Era", s: ["Champaran, Kheda & Ahmedabad", "Non-Cooperation & Khilafat", "Salt Satyagraha & Gandhi–Irwin Pact"] },
+    { t: "CDM and Simon Commission", s: ["Simon Commission & Nehru Report", "Civil Disobedience Movement", "Round Table Conferences & Poona Pact"] },
+    { t: "Quit India Movement", s: ["Cripps Mission", "Quit India 1942 & the INA", "Cabinet Mission & Independence"] },
+    { t: "Governor-General and Viceroy", s: ["Governors-General & their reforms", "Viceroys & key events", "Important acts & policies"] },
+  ],
+  Polity: [
+    { t: "Making of Constitution", s: ["Constituent Assembly", "Drafting Committee & timeline", "Objectives Resolution"] },
+    { t: "Salient Features of the Constitution", s: ["Federal & unitary features", "Parliamentary system", "Borrowed features"] },
+    { t: "Preamble", s: ["Keywords & their meaning", "42nd Amendment changes", "Judicial interpretation"] },
+    { t: "Part 1 and Part 2 of the Constitution", s: ["Union & its territory (Art. 1–4)", "Citizenship (Art. 5–11)", "Related citizenship acts"] },
+    { t: "Fundamental Rights", s: ["Articles 12–35 overview", "Right to Equality & Freedom", "Writs & enforcement"] },
+    { t: "DPSP and Fundamental Duties", s: ["Classification of DPSPs", "Important articles", "Fundamental duties (Art. 51A)"] },
+    { t: "President and Vice President of India", s: ["Election & qualifications", "Powers & veto", "Impeachment & vacancy"] },
+    { t: "Prime Minister and Council of Ministers", s: ["Appointment & powers", "Collective responsibility", "Cabinet committees"] },
+    { t: "Parliament", s: ["Lok Sabha & Rajya Sabha", "Bills & legislative procedure", "Sessions, motions & committees"] },
+    { t: "State Legislature", s: ["Governor's powers", "Legislative Assembly & Council", "State legislative procedure"] },
+    { t: "Centre-State Relations", s: ["Legislative relations & the three lists", "Administrative & financial relations", "Inter-state councils"] },
+    { t: "Emergency & Constitutional Amendment", s: ["National, State & Financial emergency", "Amendment procedure (Art. 368)", "Important amendments"] },
+    { t: "Supreme Court and High Court", s: ["Composition & appointment", "Jurisdiction & judicial review", "Subordinate judiciary"] },
+    { t: "Local Government", s: ["73rd & 74th amendments", "Panchayati Raj structure", "Municipalities & related schedules"] },
+    { t: "Constitutional and Non-Constitutional Bodies", s: ["Election Commission, UPSC & CAG", "Finance Commission & others", "NITI Aayog, NHRC & CVC"] },
+    { t: "New Criminal Laws 2023", s: ["Bharatiya Nyaya Sanhita", "Bharatiya Nagarik Suraksha Sanhita", "Bharatiya Sakshya Adhiniyam"] },
+    { t: "Important Acts", s: ["Regulating & Charter Acts", "Government of India Acts 1919 & 1935", "Indian Independence Act 1947"] },
+    { t: "Sources of the Indian Constitution", s: ["Borrowed provisions by country", "Schedules overview", "Key articles list"] },
+    { t: "Noteworthy Points", s: ["Important articles to memorise", "Schedules & parts", "Quick revision facts"] },
+  ],
+  Economics: [
+    { t: "Basics of Economy", s: ["Types of economies", "Sectors of the economy", "Basic economic problems"] },
+    { t: "Microeconomics", s: ["Demand & supply", "Elasticity", "Market structures & cost curves"] },
+    { t: "National Income", s: ["GDP, GNP & NNP concepts", "Methods of measurement", "Agencies & base year"] },
+    { t: "Budget and Taxation", s: ["Budget components & deficits", "Direct & indirect taxes", "GST & tax reforms"] },
+    { t: "Inflation and Unemployment", s: ["Types & causes of inflation", "CPI, WPI & measurement", "Types of unemployment"] },
+    { t: "Banking: Part 1", s: ["RBI functions & structure", "Types of banks", "Banking sector reforms"] },
+    { t: "Monetary Policy", s: ["Repo, reverse repo, CRR & SLR", "Monetary Policy Committee", "Quantitative & qualitative tools"] },
+    { t: "Banking: Part 2", s: ["NPAs & Basel norms", "Financial inclusion schemes", "Payment systems & institutions"] },
+    { t: "Poverty and Balance of Payment", s: ["Poverty estimation & committees", "Balance of payments structure", "Exchange rates & trade"] },
+    { t: "Five Year Plan and Industrial Policy Resolution", s: ["Plans & their objectives", "Industrial policies 1948, 1956 & 1991", "LPG reforms"] },
+    { t: "Indices, Reports, International Institutions & Key Economic Concepts", s: ["Major global indices", "IMF, World Bank & WTO", "Important reports & terms"] },
+  ],
+  Environment: [
+    { t: "Basics of Environmental Sciences", s: ["Components of the environment", "Types of pollution", "Key terms & concepts"] },
+    { t: "Ecosystem", s: ["Structure & function", "Types of ecosystems", "Ecological pyramids"] },
+    { t: "Trophic Dynamics and Energy Transfer", s: ["Food chains & food webs", "Ten percent law", "Productivity"] },
+    { t: "Biogeochemical Cycles", s: ["Carbon & nitrogen cycles", "Water & phosphorus cycles", "Human impact"] },
+    { t: "Environmental Conventions", s: ["UNFCCC, Kyoto & Paris", "CBD, Ramsar & CITES", "Protocols & summits"] },
+    { t: "National Parks", s: ["Major national parks & their states", "Wildlife sanctuaries & tiger reserves", "Biosphere reserves"] },
+  ],
+  "Static GK": [
+    { t: "Music and Paintings", s: ["Hindustani & Carnatic music", "Instruments & exponents", "Schools of painting"] },
+    { t: "Classical Dance", s: ["The eight classical dances", "States & exponents", "Features & source texts"] },
+    { t: "Folk Dances of India", s: ["State-wise folk dances", "Tribal dances", "Frequently asked pairs"] },
+    { t: "Festivals of India", s: ["State-wise festivals", "Religious festivals", "Harvest festivals"] },
+    { t: "Census", s: ["Census 2011 highlights", "Sex ratio & literacy", "State-wise population data"] },
+    { t: "Important Days", s: ["National days", "International days & themes", "Days linked to organisations"] },
+    { t: "Books and Authors", s: ["Autobiographies", "Recent & classic books", "Authors & their works"] },
+    { t: "Sports", s: ["Trophies & cups", "Sports terms & players", "Olympics, Asian & Commonwealth Games"] },
+    { t: "International Organisations", s: ["UN & its agencies", "Headquarters & current heads", "Founding years"] },
+    { t: "National Organisations", s: ["Research & defence bodies", "Regulatory institutions", "Headquarters"] },
+    { t: "Awards and Honours", s: ["Civilian & gallantry awards", "Field-specific awards", "International awards"] },
+  ],
+};
+
+const SCIENCE_SECTIONS = {
+  Physics: [
+    { t: "Motion", s: ["Distance, displacement, speed & velocity", "Equations of motion", "Graphs of motion"] },
+    { t: "Force and Laws of Motion", s: ["Newton's three laws", "Momentum & impulse", "Friction & circular motion"] },
+    { t: "Gravitation and Work Done", s: ["Universal law of gravitation", "Work, energy & power", "Mass, weight & free fall"] },
+    { t: "Sound", s: ["Nature & propagation", "Pitch, loudness & quality", "Echo, SONAR & ultrasound"] },
+    { t: "Reflection and Refraction", s: ["Laws of reflection", "Mirrors & image formation", "Refraction, lenses & power"] },
+    { t: "Human Eye and Vision", s: ["Structure of the eye", "Defects & their correction", "Dispersion & scattering"] },
+    { t: "Electricity", s: ["Current, potential & resistance", "Ohm's law & circuits", "Heating effect & electric power"] },
+    { t: "Magnetic Effect of Electric Current", s: ["Magnetic field & field lines", "Solenoid & electromagnets", "Motor, generator & induction"] },
+  ],
+  Chemistry: [
+    { t: "Matter", s: ["States & properties of matter", "Physical & chemical changes", "Mixtures & separation techniques"] },
+    { t: "Atom and its Structure", s: ["Atomic models", "Sub-atomic particles", "Isotopes, isobars & valency"] },
+    { t: "Periodic Table", s: ["Mendeleev & the modern table", "Groups, periods & blocks", "Periodic trends"] },
+    { t: "Chemical Reactions", s: ["Types of reactions", "Balancing equations", "Oxidation & reduction"] },
+    { t: "Metals and Non-Metals", s: ["Physical & chemical properties", "Reactivity series", "Alloys & corrosion"] },
+    { t: "Acid, Base and Salt", s: ["Properties & indicators", "pH scale", "Important salts & their uses"] },
+    { t: "Carbon and its Compounds", s: ["Covalent bonding & allotropes", "Hydrocarbons & functional groups", "Soaps, detergents & polymers"] },
+  ],
+  Biology: [
+    { t: "Cell", s: ["Cell theory & types", "Cell organelles", "Cell division"] },
+    { t: "Plant Tissue and Animal Tissue", s: ["Meristematic & permanent tissue", "Epithelial, connective, muscular & nervous tissue", "Functions & locations"] },
+    { t: "Plant and Animal Kingdom", s: ["Systems of classification", "Divisions of the plant kingdom", "Animal phyla & characteristics"] },
+    { t: "Nervous System", s: ["Structure of a neuron", "Brain & spinal cord", "Reflex action & nerves"] },
+    { t: "Hormones and Plant Movement", s: ["Human endocrine glands & hormones", "Plant hormones", "Tropic & nastic movements"] },
+    { t: "Reproduction", s: ["Asexual & sexual reproduction", "Human reproductive system", "Reproduction in plants"] },
+    { t: "Digestion and Respiration", s: ["Digestive system & enzymes", "Respiratory system", "Types of respiration"] },
+    { t: "Circulatory System and Excretory System", s: ["Heart, blood & blood groups", "Blood vessels & circulation", "Kidney & excretion"] },
+    { t: "Diseases", s: ["Communicable diseases & pathogens", "Non-communicable & deficiency diseases", "Vaccines & immunity"] },
+    { t: "Nutrients", s: ["Carbohydrates, proteins & fats", "Vitamins & deficiency diseases", "Minerals & balanced diet"] },
+    { t: "Heredity and Evolution", s: ["Mendel's laws", "Genes, DNA & chromosomes", "Evolution & its theories"] },
+  ],
+};
+
+// Flatten section-wise topics into one ordered queue, tagging each with its section.
+function flattenSections(sections) {
+  const out = [];
+  for (const [section, topics] of Object.entries(sections)) {
+    for (const topic of topics) out.push({ t: topic.t, s: topic.s, section });
+  }
+  return out;
+}
+
+const GS_TOPICS = flattenSections(GS_SECTIONS);
+const SCIENCE_TOPICS = flattenSections(SCIENCE_SECTIONS);
