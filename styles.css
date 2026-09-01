@@ -227,6 +227,11 @@ main#app { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
 .topic-row:last-child { border-bottom: none; }
 .topic-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--orange); flex-shrink: 0; }
 .topic-row.done label { color: var(--text-dim); text-decoration: line-through; }
+.topic-row.has-subs { align-items: flex-start; }
+.topic-row.has-subs input[type="checkbox"] { margin-top: 2px; }
+.topic-text { flex: 1; min-width: 0; }
+.topic-subs { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+.topic-row.done .topic-subs { opacity: 0.55; }
 .topic-row .section-tag {
   font-size: 0.7rem;
   color: var(--text-dim);
@@ -246,8 +251,9 @@ main#app { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
 }
 .chevron { transition: transform 0.15s ease; color: var(--text-muted); }
 .chevron.open { transform: rotate(90deg); }
-.topic-list { max-height: 0; overflow: hidden; transition: max-height 0.2s ease; }
-.topic-list.open { max-height: 2000px; }
+/* No max-height clamp here: GS runs to 95 rows and a fixed cap silently hid the tail. */
+.topic-list { display: none; }
+.topic-list.open { display: block; }
 
 .phase2-toggle {
   margin-top: 14px;
@@ -365,6 +371,53 @@ table.planner tr.current-week td { background: var(--orange-soft); }
 .pace-row:last-child { border-bottom: none; }
 .pace-row .pace-target { color: var(--text-muted); }
 .pace-row .pace-target.ok { color: var(--green-ok); }
+
+/* ---- dev date simulator (hidden unless toggled) ---- */
+.dev-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: #16120e;
+  border-top: 1px solid var(--orange);
+  padding: 10px 14px;
+  font-size: 0.78rem;
+}
+.dev-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 860px; margin: 0 auto; }
+.dev-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--border);
+  color: var(--text-muted);
+}
+.dev-tag.sim { background: var(--orange); color: #16120e; }
+.dev-bar input[type="date"] {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  font-family: inherit;
+}
+.dev-bar button {
+  background: var(--card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.dev-bar button:hover:not(:disabled) { color: var(--text); border-color: var(--orange); }
+.dev-bar [data-close] { margin-left: auto; }
+.dev-bar button:disabled { opacity: 0.4; cursor: default; }
+.dev-info { margin-top: 7px; color: var(--text-dim); font-size: 0.72rem; gap: 14px; }
+body.dev-on main#app { padding-bottom: 130px; }
 
 @media (max-width: 480px) {
   .topbar { padding: 14px; }

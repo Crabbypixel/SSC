@@ -56,6 +56,19 @@ let activeTab = "today";
 const openSubjects = new Set();
 
 // ---------- date helpers ----------
+// Dev-only date override. Everything that asks "what day is it?" goes through now(),
+// so simulating a date exercises the real code paths. Stored apart from study data.
+const DEV_KEY = "ssc-cgl-tracker-dev";
+let dev = (() => {
+  try { return JSON.parse(localStorage.getItem(DEV_KEY)) || { on: false, date: null }; }
+  catch (e) { return { on: false, date: null }; }
+})();
+if (location.search.includes("dev")) dev.on = true;
+
+function saveDev() { localStorage.setItem(DEV_KEY, JSON.stringify(dev)); }
+// Midday avoids any DST edge; the override only applies while the dev bar is visible.
+function now() { return dev.on && dev.date ? new Date(dev.date + "T12:00:00") : new Date(); }
+
 function pad(n) { return String(n).padStart(2, "0"); }
 function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
 function startOfDay(d) { const c = new Date(d); c.setHours(0, 0, 0, 0); return c; }
@@ -184,11 +197,11 @@ function esc(str) {
 }
 
 function renderStreakPill() {
-  document.getElementById("streakCount").textContent = computeStreak(state.history, new Date());
+  document.getElementById("streakCount").textContent = computeStreak(state.history, now());
 }
 
 function renderToday() {
-  const today = new Date();
+  const today = now();
   const dow = today.getDay();
   const subjects = activeSubjectsFor(dow);
   const week = planWeekNumber(today);
@@ -228,7 +241,7 @@ function renderToday() {
   }
 
   document.getElementById("markTodayBtn").addEventListener("click", () => {
-    const key = dateKey(new Date());
+    const key = dateKey(now());
     const idx = state.history.indexOf(key);
     if (idx === -1) state.history.push(key); else state.history.splice(idx, 1);
     saveState();
@@ -344,9 +357,12 @@ function renderSubjectCard(subject) {
   const done = doneSet(subject);
 
   const rows = items.map((item, i) => `
-    <div class="topic-row ${done.has(item.title) ? "done" : ""}">
+    <div class="topic-row has-subs ${done.has(item.title) ? "done" : ""}">
       <input type="checkbox" data-index="${i}" ${done.has(item.title) ? "checked" : ""} id="t-${subject}-${i}" />
-      <label for="t-${subject}-${i}">${esc(item.title)}</label>
+      <div class="topic-text">
+        <label for="t-${subject}-${i}">${esc(item.title)}</label>
+        <div class="topic-subs">${esc(item.subtopics.join(" · "))}</div>
+      </div>
       ${item.section ? `<span class="section-tag">${esc(item.section)}</span>` : ""}
     </div>
   `).join("");
@@ -456,7 +472,7 @@ function scheduledThroughWeek(subject, week) {
 }
 
 function currentPlanWeek() {
-  return Math.min(Math.max(planWeekNumber(new Date()), 1), CORE_WEEKS);
+  return Math.min(Math.max(planWeekNumber(now()), 1), CORE_WEEKS);
 }
 
 function pendingFor(subject) {
@@ -489,7 +505,7 @@ function plannerCellHtml(subject, topics) {
 function renderPlanner() {
   const container = document.getElementById("app");
   container.innerHTML = "";
-  const today = new Date();
+  const today = now();
   const rawWeek = planWeekNumber(today);
   const currentWeek = Math.min(Math.max(rawWeek, 1), CORE_WEEKS);
   const subjects = SUBJECT_ORDER;
@@ -586,7 +602,7 @@ function heatmapStart(today) {
 function renderProgress() {
   const container = document.getElementById("app");
   container.innerHTML = "";
-  const today = new Date();
+  const today = now();
   const streak = computeStreak(state.history, today);
   const best = Math.max(computeBestStreak(state.history), streak);
   const visibleSubjects = SUBJECT_ORDER.filter((s) => s !== "science" || state.scienceUnlocked);
@@ -672,7 +688,84 @@ function renderProgress() {
   container.appendChild(heatCard);
 }
 
+// ---------- dev tools ----------
+// Pretend it is another day, to check the weekday rotation, plan weeks and streaks.
+// Toggle with Ctrl+Shift+D or by loading the page with ?dev — never on by default.
+function renderDevBar() {
+  let bar = document.getElementById("devBar");
+  if (!dev.on) {
+    if (bar) bar.remove();
+    document.body.classList.remove("dev-on");
+    return;
+  }
+  if (!bar) {
+    bar = el(`<div id="devBar" class="dev-bar"></div>`);
+    document.body.appendChild(bar);
+  }
+  document.body.classList.add("dev-on");
+
+  const d = now();
+  const week = planWeekNumber(d);
+  const dayName = d.toLocaleDateString("en-IN", { weekday: "long" });
+  const subjects = activeSubjectsFor(d.getDay()).map((s) => SUBJECT_META[s].label).join(", ") || "none (self-revision)";
+  const marked = state.history.includes(dateKey(d));
+
+  bar.innerHTML = `
+    <div class="dev-row">
+      <span class="dev-tag ${dev.date ? "sim" : ""}">${dev.date ? "SIMULATED DATE" : "DEV"}</span>
+      <input type="date" id="devDate" value="${dateKey(d)}" />
+      <button data-shift="-7">−1w</button>
+      <button data-shift="-1">−1d</button>
+      <button data-shift="1">+1d</button>
+      <button data-shift="7">+1w</button>
+      <button data-reset ${dev.date ? "" : "disabled"}>Real date</button>
+      <button data-close title="Ctrl+Shift+D">×</button>
+    </div>
+    <div class="dev-row dev-info">
+      <span>${dayName}</span>
+      <span>Plan week ${week === 0 ? "— (before start)" : week}${week > CORE_WEEKS ? " (past core plan)" : ""}</span>
+      <span>Subjects: ${subjects}</span>
+      <span>Streak ${computeStreak(state.history, d)}${marked ? " · marked studied" : ""}</span>
+    </div>
+  `;
+
+  bar.querySelector("#devDate").addEventListener("change", (e) => {
+    dev.date = e.target.value || null;
+    saveDev();
+    render();
+  });
+  bar.querySelectorAll("[data-shift]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      dev.date = dateKey(addDays(now(), Number(btn.getAttribute("data-shift"))));
+      saveDev();
+      render();
+    });
+  });
+  bar.querySelector("[data-reset]").addEventListener("click", () => {
+    dev.date = null;
+    saveDev();
+    render();
+  });
+  bar.querySelector("[data-close]").addEventListener("click", () => {
+    dev.on = false;
+    dev.date = null;
+    saveDev();
+    render();
+  });
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "d") {
+    e.preventDefault();
+    dev.on = !dev.on;
+    if (!dev.on) dev.date = null;
+    saveDev();
+    render();
+  }
+});
+
 function render() {
+  renderDevBar();
   renderStreakPill();
   if (activeTab === "today") renderToday();
   else if (activeTab === "planner") renderPlanner();
