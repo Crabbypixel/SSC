@@ -807,6 +807,124 @@ function renderProgress() {
   container.appendChild(paceCard);
 
   container.appendChild(renderCalendarCard());
+  container.appendChild(renderBackupCard());
+}
+
+// ---------- backup ----------
+// Progress lives in this browser's localStorage only, so it needs a way out: export
+// writes a JSON file, import merges one back in.
+function exportData() {
+  const payload = {
+    app: "ssc-cgl-tracker",
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    data: state,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `ssc-tracker-backup-${dateKey(now())}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Merge, never replace: a restore can only ever add days and ticks, so importing an
+// older backup can't wipe out progress made since.
+function mergeImported(incoming) {
+  const added = { days: 0, topics: 0 };
+
+  const history = new Set(state.history);
+  (Array.isArray(incoming.history) ? incoming.history : [])
+    .filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .forEach((d) => { if (!history.has(d)) { history.add(d); added.days += 1; } });
+  state.history = [...history].sort();
+
+  for (const subject of Object.keys(state.done)) {
+    const titles = (incoming.done && Array.isArray(incoming.done[subject])) ? incoming.done[subject] : [];
+    const valid = new Set(getItems(subject).map((i) => i.title));
+    const current = new Set(state.done[subject]);
+    titles.filter((t) => valid.has(t)).forEach((t) => {
+      if (!current.has(t)) { current.add(t); added.topics += 1; }
+    });
+    state.done[subject] = [...current];
+  }
+
+  for (const [key, list] of Object.entries(incoming.subDone || {})) {
+    if (!Array.isArray(list)) continue;
+    const merged = new Set([...(state.subDone[key] || []), ...list.filter((n) => Number.isInteger(n))]);
+    state.subDone[key] = [...merged].sort((a, b) => a - b);
+  }
+
+  if (incoming.scienceUnlocked) state.scienceUnlocked = true;
+  for (const seed of incoming.seeds || []) {
+    if (!state.seeds.includes(seed)) state.seeds.push(seed);
+  }
+
+  saveState();
+  return added;
+}
+
+function importData(file, statusEl) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let incoming;
+    try {
+      const parsed = JSON.parse(reader.result);
+      incoming = parsed && parsed.data ? parsed.data : parsed;
+      if (!incoming || typeof incoming !== "object" || (!incoming.history && !incoming.done)) {
+        throw new Error("not a tracker backup");
+      }
+    } catch (e) {
+      statusEl.textContent = "That file isn't a tracker backup.";
+      statusEl.className = "backup-status bad";
+      return;
+    }
+    const added = mergeImported(incoming);
+    render();
+    const el2 = document.querySelector(".backup-status");
+    if (el2) {
+      el2.textContent = added.days || added.topics
+        ? `Restored: +${added.days} study day${added.days === 1 ? "" : "s"}, +${added.topics} topic${added.topics === 1 ? "" : "s"}.`
+        : "Already up to date — nothing new in that backup.";
+      el2.className = "backup-status good";
+    }
+  };
+  reader.onerror = () => {
+    statusEl.textContent = "Couldn't read that file.";
+    statusEl.className = "backup-status bad";
+  };
+  reader.readAsText(file);
+}
+
+function renderBackupCard() {
+  const card = el(`
+    <div class="card">
+      <h2>Backup</h2>
+      <p class="hint">
+        Your progress is saved in this browser only — it doesn't follow you to another
+        device, and clearing site data wipes it. Export a copy to keep it safe.
+      </p>
+      <div class="backup-row">
+        <button data-export>Export my data</button>
+        <button data-import>Import a backup</button>
+        <input type="file" accept="application/json,.json" hidden />
+      </div>
+      <p class="backup-status">Importing merges — it only ever adds study days and ticks, never removes them.</p>
+    </div>
+  `);
+
+  const fileInput = card.querySelector("input[type=file]");
+  const status = card.querySelector(".backup-status");
+  card.querySelector("[data-export]").addEventListener("click", exportData);
+  card.querySelector("[data-import]").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files && fileInput.files[0]) importData(fileInput.files[0], status);
+    fileInput.value = "";
+  });
+  return card;
 }
 
 // ---------- dev tools ----------

@@ -413,6 +413,23 @@ table.planner tr.current-week td { background: var(--orange-soft); }
 .pace-row .pace-target { color: var(--text-muted); }
 .pace-row .pace-target.ok { color: var(--green-ok); }
 
+/* ---- backup ---- */
+.backup-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.backup-row button {
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.backup-row button:hover { border-color: var(--orange); color: var(--yellow); }
+.backup-status { font-size: 0.78rem; color: var(--text-dim); margin: 12px 0 0; }
+.backup-status.good { color: var(--green-ok); }
+.backup-status.bad { color: var(--orange); }
+
 /* ---- dev date simulator (hidden unless toggled) ---- */
 .dev-bar {
   position: fixed;
