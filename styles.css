@@ -227,6 +227,22 @@ main#app { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
 .topic-row:last-child { border-bottom: none; }
 .topic-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--orange); flex-shrink: 0; }
 .topic-row.done label { color: var(--text-dim); text-decoration: line-through; }
+.topic-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 16px 0 4px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--yellow);
+}
+.topic-group:first-child { margin-top: 4px; }
+.topic-group span { color: var(--text-dim); font-weight: 400; letter-spacing: 0; }
+
 .topic-row.has-subs { align-items: flex-start; }
 .topic-row.has-subs input[type="checkbox"] { margin-top: 2px; }
 .topic-text { flex: 1; min-width: 0; }

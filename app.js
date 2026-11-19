@@ -2,7 +2,35 @@
 
 const STORAGE_KEY = "ssc-cgl-tracker-v2";
 const LEGACY_KEY = "ssc-cgl-tracker-v1";
+const RESUME_SEED = "resume-2026-11"; // applied once, so it never re-ticks topics you untick
 const TOTAL_REASONING_WEIGHT = REASONING_TOPICS.reduce((s, r) => s + r.w, 0);
+
+const SUBJECT_LISTS = {
+  grammar: GRAMMAR_TOPICS, vocabulary: VOCAB_TOPICS, math: MATH_TOPICS,
+  reasoning: REASONING_TOPICS, gs: GS_TOPICS, science: SCIENCE_TOPICS,
+};
+
+// Titles already finished at the resume point, expanded from RESUME_THROUGH.
+const SEEDED = (() => {
+  const out = {};
+  for (const [subject, list] of Object.entries(SUBJECT_LISTS)) {
+    const through = RESUME_THROUGH[subject];
+    const idx = through ? list.findIndex((item) => item.t === through) : -1;
+    out[subject] = new Set(idx === -1 ? [] : list.slice(0, idx + 1).map((item) => item.t));
+  }
+  return out;
+})();
+
+// The plan runs as long as GS needs: each GS subject is taken on its own, at most
+// GS_CHAPTERS_PER_WEEK chapters a week. Every other subject fits inside that window.
+const CORE_WEEKS = (() => {
+  const perSection = {};
+  GS_TOPICS.filter((t) => !SEEDED.gs.has(t.t))
+    .forEach((t) => { perSection[t.section] = (perSection[t.section] || 0) + 1; });
+  const weeks = Object.values(perSection)
+    .reduce((sum, n) => sum + Math.ceil(n / GS_CHAPTERS_PER_WEEK), 0);
+  return Math.max(weeks, 12);
+})();
 
 function defaultState() {
   return {
@@ -10,7 +38,27 @@ function defaultState() {
     subDone: {},        // "subject::Topic Title" -> array of completed subtopic indices
     scienceUnlocked: false,
     history: [],        // "YYYY-MM-DD" days marked as studied
+    seeds: [],          // one-off migrations already applied
   };
+}
+
+// Mark the pre-resume work as done, once. Streak history is never touched.
+function applyResumeSeed(s) {
+  if (!Array.isArray(s.seeds)) s.seeds = [];
+  if (s.seeds.includes(RESUME_SEED)) return s;
+  for (const [subject, titles] of Object.entries(SEEDED)) {
+    if (!titles.size) continue;
+    const done = new Set(s.done[subject] || []);
+    for (const title of titles) {
+      done.add(title);
+      const item = SUBJECT_LISTS[subject].find((x) => x.t === title);
+      const count = (item && item.s && item.s.length) || 0;
+      if (count) s.subDone[`${subject}::${title}`] = Array.from({ length: count }, (_, i) => i);
+    }
+    s.done[subject] = [...done];
+  }
+  s.seeds.push(RESUME_SEED);
+  return s;
 }
 
 // v1 stored a single integer pointer per subject; convert it to the first N topic titles.
@@ -39,12 +87,17 @@ function loadState() {
     if (raw) {
       const parsed = JSON.parse(raw);
       const base = defaultState();
-      return { ...base, ...parsed, done: { ...base.done, ...(parsed.done || {}) }, subDone: parsed.subDone || {} };
+      // Existing saved data wins over defaults, so streak history survives untouched.
+      return applyResumeSeed({
+        ...base, ...parsed,
+        done: { ...base.done, ...(parsed.done || {}) },
+        subDone: parsed.subDone || {},
+      });
     }
     const migrated = migrateLegacy();
-    if (migrated) return migrated;
+    if (migrated) return applyResumeSeed(migrated);
   } catch (e) { /* fall through to a clean slate */ }
-  return defaultState();
+  return applyResumeSeed(defaultState());
 }
 
 function saveState() {
@@ -52,6 +105,7 @@ function saveState() {
 }
 
 let state = loadState();
+saveState(); // persist the resume seed on first load after the update
 let activeTab = "today";
 const openSubjects = new Set();
 
@@ -356,16 +410,26 @@ function renderSubjectCard(subject) {
   const isOpen = openSubjects.has(subject);
   const done = doneSet(subject);
 
-  const rows = items.map((item, i) => `
+  // Sectioned subjects (GS, Science) are grouped under their subject heading rather
+  // than running as one flat list.
+  let lastSection = null;
+  const rows = items.map((item, i) => {
+    let heading = "";
+    if (item.section && item.section !== lastSection) {
+      const inSection = items.filter((x) => x.section === item.section);
+      const doneInSection = inSection.filter((x) => done.has(x.title)).length;
+      heading = `<div class="topic-group">${esc(item.section)}<span>${doneInSection}/${inSection.length}</span></div>`;
+      lastSection = item.section;
+    }
+    return `${heading}
     <div class="topic-row has-subs ${done.has(item.title) ? "done" : ""}">
       <input type="checkbox" data-index="${i}" ${done.has(item.title) ? "checked" : ""} id="t-${subject}-${i}" />
       <div class="topic-text">
         <label for="t-${subject}-${i}">${esc(item.title)}</label>
         <div class="topic-subs">${esc(item.subtopics.join(" · "))}</div>
       </div>
-      ${item.section ? `<span class="section-tag">${esc(item.section)}</span>` : ""}
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 
   const card = el(`
     <div class="card">
@@ -433,12 +497,27 @@ function closeGaps(buckets, firstWeek, span) {
 
 function plannerFor(subject) {
   if (plannerCache[subject]) return plannerCache[subject];
-  const items = getItems(subject);
+  // Work finished before the resume isn't scheduled again — the timetable looks forward.
+  const items = getItems(subject).filter((i) => !SEEDED[subject].has(i.title));
   const firstWeek = subject === "science" ? SCIENCE_START_WEEK : 1;
   const span = CORE_WEEKS - firstWeek + 1;
   const buckets = Array.from({ length: CORE_WEEKS + 1 }, () => []);
 
-  if (items.length <= span) {
+  if (subject === "gs") {
+    // One GS subject at a time, GS_CHAPTERS_PER_WEEK chapters a week, no mixing within a week.
+    let week = firstWeek;
+    let inWeek = 0;
+    let section = null;
+    items.forEach((item) => {
+      if (section !== null && (item.section !== section || inWeek >= GS_CHAPTERS_PER_WEEK)) {
+        week += 1;
+        inWeek = 0;
+      }
+      section = item.section;
+      buckets[Math.min(week, CORE_WEEKS)].push(item);
+      inWeek += 1;
+    });
+  } else if (items.length <= span) {
     // Fewer topics than weeks: one a week until the subject is finished, then nothing.
     items.forEach((item, i) => buckets[firstWeek + i].push(item));
   } else if (subject === "reasoning") {

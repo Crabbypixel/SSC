@@ -2,9 +2,20 @@
 // Every topic carries its own subtopic breakdown so the Today view can show
 // exactly what to cover. Topic order follows the source books/PDFs.
 
-const START_DATE = new Date(2026, 8, 2); // Wed, 2 Sep 2026 (month is 0-indexed)
-const CORE_WEEKS = 22; // core learning window (~5 months) before the plan leans into revision/mocks
+// Plan rebased on resuming after a break. Week 1 is the week of Mon 16 Nov 2026; the
+// timetable schedules only what was still outstanding at that point (see RESUME_THROUGH).
+const START_DATE = new Date(2026, 10, 16); // Mon, 16 Nov 2026 (month is 0-indexed)
 const SCIENCE_START_WEEK = 9; // science enters the planner after roughly two months
+const GS_CHAPTERS_PER_WEEK = 2; // GS pace: at most this many chapters a week, one subject at a time
+
+// Work already finished when the plan resumed, given as the last topic completed in each
+// subject ("through" = that topic included). Everything after it gets scheduled afresh.
+// Subjects not listed had nothing done.
+const RESUME_THROUGH = {
+  grammar: "Pronoun",
+  reasoning: "Analogy & Similarity",
+  gs: "Rocks, Continents and Oceans",
+};
 
 const GRAMMAR_TOPICS = [
   { t: "Basics", s: ["Parts of speech overview", "Subject, predicate & sentence structure", "Phrase vs clause", "Common error-spotting patterns"] },
