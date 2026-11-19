@@ -665,17 +665,88 @@ function renderPlanner() {
   `));
 }
 
-// Heatmap starts at the beginning of the plan (or your first studied day, whichever is
-// earlier) and reads left to right, Monday first — rolling forward once you pass 12 weeks.
-function heatmapStart(today) {
-  const stamps = [startOfDay(START_DATE).getTime(), startOfDay(today).getTime()];
-  if (state.history.length) stamps.push(startOfDay(parseKey([...state.history].sort()[0])).getTime());
-  const earliest = new Date(Math.min(...stamps));
-  const offsetToMonday = (earliest.getDay() + 6) % 7;
-  let start = addDays(earliest, -offsetToMonday);
-  const weeksElapsed = Math.floor((startOfDay(today) - start) / (7 * 86400000));
-  if (weeksElapsed > 11) start = addDays(start, (weeksElapsed - 11) * 7);
-  return start;
+// ---------- study calendar ----------
+// A normal month view. `calendarMonth` is null until you navigate, so it always opens
+// on the current month (and follows the dev date override).
+let calendarMonth = null;
+
+// You can page back to the plan's first month, or your first studied day if that is
+// earlier, and forward no further than the month you are in.
+function calendarBounds() {
+  const today = startOfDay(now());
+  const stamps = [new Date(START_DATE.getFullYear(), START_DATE.getMonth(), 1).getTime()];
+  if (state.history.length) {
+    const first = parseKey([...state.history].sort()[0]);
+    stamps.push(new Date(first.getFullYear(), first.getMonth(), 1).getTime());
+  }
+  return {
+    min: new Date(Math.min(...stamps)),
+    max: new Date(today.getFullYear(), today.getMonth(), 1),
+  };
+}
+
+function visibleMonth() {
+  const { min, max } = calendarBounds();
+  const today = now();
+  let view = calendarMonth
+    ? new Date(calendarMonth.y, calendarMonth.m, 1)
+    : new Date(today.getFullYear(), today.getMonth(), 1);
+  if (view < min) view = new Date(min);
+  if (view > max) view = new Date(max);
+  return view;
+}
+
+function renderCalendarCard() {
+  const today = startOfDay(now());
+  const todayKey = dateKey(today);
+  const view = visibleMonth();
+  const { min, max } = calendarBounds();
+  const year = view.getFullYear();
+  const month = view.getMonth();
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leading = (new Date(year, month, 1).getDay() + 6) % 7; // Monday-first grid
+  const studied = new Set(state.history);
+  const studiedThisMonth = state.history.filter((k) => k.startsWith(`${year}-${pad(month + 1)}-`)).length;
+
+  const card = el(`
+    <div class="card">
+      <h2>Study days</h2>
+      <div class="cal-nav">
+        <button data-cal="-1" ${view <= min ? "disabled" : ""} aria-label="Previous month">‹</button>
+        <div class="cal-title">
+          ${view.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}
+          <span>${studiedThisMonth} day${studiedThisMonth === 1 ? "" : "s"} studied</span>
+        </div>
+        <button data-cal="1" ${view >= max ? "disabled" : ""} aria-label="Next month">›</button>
+      </div>
+      <div class="calendar"></div>
+    </div>
+  `);
+
+  const grid = card.querySelector(".calendar");
+  ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    .forEach((d) => grid.appendChild(el(`<div class="cal-head">${d}</div>`)));
+  for (let i = 0; i < leading; i++) grid.appendChild(el(`<div class="cal-blank"></div>`));
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const key = dateKey(date);
+    const cls = [
+      studied.has(key) ? "filled" : "",
+      key === todayKey ? "today" : "",
+      startOfDay(date) > today ? "future" : "",
+    ].filter(Boolean).join(" ");
+    grid.appendChild(el(`<div class="cal-cell ${cls}" title="${key}">${day}</div>`));
+  }
+
+  card.querySelectorAll("[data-cal]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const step = Number(btn.getAttribute("data-cal"));
+      calendarMonth = { y: year, m: month + step };
+      render();
+    });
+  });
+  return card;
 }
 
 function renderProgress() {
@@ -735,36 +806,7 @@ function renderProgress() {
   });
   container.appendChild(paceCard);
 
-  const start = heatmapStart(today);
-  const heatCard = el(`
-    <div class="card">
-      <h2>Study days</h2>
-      <p class="hint">12 weeks from ${start.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}. Filled squares are days you marked as studied.</p>
-    </div>
-  `);
-
-  const cal = el(`<div class="calendar"></div>`);
-  cal.appendChild(el(`<div class="cal-corner"></div>`));
-  ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => cal.appendChild(el(`<div class="cal-head">${d}</div>`)));
-
-  const set = new Set(state.history);
-  const todayKey = dateKey(today);
-  for (let w = 0; w < 12; w++) {
-    const rowStart = addDays(start, w * 7);
-    cal.appendChild(el(`<div class="cal-week">${rowStart.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</div>`));
-    for (let d = 0; d < 7; d++) {
-      const day = addDays(rowStart, d);
-      const key = dateKey(day);
-      const cls = [
-        set.has(key) ? "filled" : "",
-        key === todayKey ? "today" : "",
-        startOfDay(day) > startOfDay(today) ? "future" : "",
-      ].filter(Boolean).join(" ");
-      cal.appendChild(el(`<div class="cal-cell ${cls}" title="${key}">${day.getDate()}</div>`));
-    }
-  }
-  heatCard.appendChild(cal);
-  container.appendChild(heatCard);
+  container.appendChild(renderCalendarCard());
 }
 
 // ---------- dev tools ----------
