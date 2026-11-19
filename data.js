@@ -6,7 +6,10 @@
 // timetable schedules only what was still outstanding at that point (see RESUME_THROUGH).
 const START_DATE = new Date(2026, 10, 16); // Mon, 16 Nov 2026 (month is 0-indexed)
 const SCIENCE_START_WEEK = 9; // science enters the planner after roughly two months
-const GS_CHAPTERS_PER_WEEK = 2; // GS pace: at most this many chapters a week, one subject at a time
+// GS pace: at most this many chapters a week, one subject at a time. This single number
+// sets the length of the whole plan, since GS is the longest subject. 5/week finishes the
+// syllabus on 18 Apr 2027; raise it to 6 to finish 21 Mar, or drop to 4 for 16 May.
+const GS_CHAPTERS_PER_WEEK = 5;
 
 // Work already finished when the plan resumed, given as the last topic completed in each
 // subject ("through" = that topic included). Everything after it gets scheduled afresh.
